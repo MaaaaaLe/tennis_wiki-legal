@@ -133,6 +133,46 @@ table.chars tr.sur td { color: var(--muted); }
 @media (min-width: 760px) { #modal { align-items: center; } .sheet { border-radius: 20px; max-height: 88vh; } }
 #modalBody { overflow-y: auto; padding: 22px 18px 32px; }
 #modalClose { position: absolute; right: 10px; top: 10px; z-index: 1; width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--surface2); color: var(--text); font-size: 18px; cursor: pointer; }
+.small-seg { margin-bottom: 8px; } .small-seg label { padding: 6px 0; font-size: 13px; }
+.legend { margin: 0 0 10px; line-height: 1.8; }
+.chip { position: relative; }
+.marks { position: absolute; top: -7px; right: -4px; display: flex; gap: 1px; }
+.mk { display: inline-flex; align-items: center; justify-content: center; font-size: 11px; line-height: 1; }
+.mk.good { font-size: 13px; }
+.mk.boost { width: 15px; height: 15px; border-radius: 50%; background: var(--mid); color: #fff; font-weight: 800; }
+.cert-btn { font: inherit; font-size: 14px; margin: 12px 0 4px 6px; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface2); color: var(--text); cursor: pointer; }
+.cert-actions { margin-bottom: 16px; } .cert-actions .btn { margin-top: 0; }
+/* 작명서 */
+.cert { background: #fffdf8; color: #2b2622; border: 1px solid #e3d8c6; border-radius: 12px; padding: 22px 20px; font-size: 13px; }
+.cert h5 { font-size: 13px; margin: 18px 0 6px; color: #a0523b; letter-spacing: .02em; }
+.cert-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 2px solid #c0654a; padding-bottom: 14px; flex-wrap: wrap; }
+.cert-brand { width: 100%; font-size: 12px; font-weight: 700; color: #c0654a; letter-spacing: .1em; }
+.cert-name { display: flex; gap: 10px; }
+.cert-char { display: flex; flex-direction: column; align-items: center; min-width: 54px; }
+.cert-char b { font-size: 38px; line-height: 1.1; font-family: "Noto Serif KR", "Batang", serif; }
+.cert-char span { font-size: 15px; font-weight: 700; } .cert-char small { font-size: 11px; color: #8a8078; }
+.cert-score { text-align: right; } .cert-score b { font-size: 34px; color: #3f8f5a; } .cert-score small { display: block; color: #8a8078; }
+.cert-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-top: 14px; }
+.cert-info > div { background: #f3eee6; border-radius: 8px; padding: 6px 8px; }
+.cert-info small { display: block; font-size: 11px; color: #8a8078; }
+.cert table.chars th, .cert table.chars td { border-color: #e7dfd4; color: #2b2622; }
+.cert-four { display: grid; grid-template-columns: 110px 1fr; gap: 8px; padding: 6px 0; border-bottom: 1px dashed #e7dfd4; }
+.cert-four small { display: block; color: #8a8078; }
+.cert-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; } .cert-grid .wide { grid-column: 1 / -1; }
+.cert-grid p { margin: 0; }
+.cert-scores { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 16px; padding-top: 10px; border-top: 1px solid #e7dfd4; font-size: 12px; color: #6b625b; }
+.cert-scores b { color: #2b2622; }
+.cert-foot { margin-top: 14px; font-size: 11px; color: #8a8078; }
+#printArea { display: none; }
+@media print {
+  @page { size: A4; margin: 14mm; }
+  body > *:not(#printArea) { display: none !important; }
+  #printArea { display: block !important; }
+  html, body { background: #fff !important; }
+  .cert { border: 0; padding: 0; font-size: 12px; }
+  .cert-four, .cert section { break-inside: avoid; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
 footer { color: var(--muted); font-size: 12px; margin-top: 28px; line-height: 1.7; }
 footer b { color: var(--text); }
 </style>
@@ -225,7 +265,7 @@ footer b { color: var(--text); }
   </div>
 
   <footer>
-    <p><b>점수 구성</b> — 수리 4격(원형이정, 81수리) 36점 · 수리오행 10점 · 발음오행 20점 · 자원오행(용신 보완) 20점 · 획수 음양 8점 · 글자 적합도 6점. 배점은 이 앱의 기준이며 업계 표준은 아닙니다.</p>
+    <p><b>점수 구성</b> — 수리 4격(원형이정, 81수리) 32점 · 수리오행 8점 · 발음오행 18점 · 발음 음양 8점 · 자원오행(용신 보완) 20점 · 획수 음양 8점 · 글자 적합도 6점. 배점은 이 앱의 기준이며 업계 표준은 아닙니다.</p>
     <p>획수는 성명학에서 쓰는 원획법(氵=水 4획, 扌=手 4획, 艹=艸 6획, 阝=阜·邑 등)으로 계산합니다. 자원오행은 이름에 자주 쓰는 약 450자는 작명 관용값을, 나머지는 부수를 기준으로 하며 부수로 판별되지 않는 글자(*)는 발음오행으로 추정했습니다.</p>
     <p>사주는 태양황경으로 계산한 절기를 기준으로 세우고, 음력 날짜는 삭(신월)과 중기를 천문 계산해 양력으로 바꿉니다. 한국의 서머타임(1948~1960, 1987~1988년)과 UTC+8:30 시기(1954~1961년)를 보정합니다. 용신은 억부법(월지 가중)과 조후를 바탕으로 한 간이 판단입니다.</p>
     <p>인명용 한자 목록은 Unicode Unihan(대법원 인명용 한자·교육용 한자) 데이터를, 한자 뜻은 libhangul 사전을 사용했습니다. 성명학은 학파마다 해석이 다른 전통 이론이며, 결과는 이름을 고르는 데 참고로만 활용해 주세요. 출생신고 전 대법원 전자가족관계등록시스템에서 인명용 한자 여부를 꼭 확인하세요.</p>
@@ -238,6 +278,8 @@ footer b { color: var(--text); }
     <div id="modalBody"></div>
   </div>
 </div>
+
+<div id="printArea" aria-hidden="true"></div>
 
 <script>
 // 자동 생성 파일: tools/build_data.py 참고. 형식: 독음 -> [한자, 뜻, 원획, 자원오행, 교육용, 상용도, 오행출처(0 부수·1 발음추정·2 작명관용)]
@@ -375,6 +417,13 @@ window.SURI81 = [null,
   const SOUND_STD = { 'ㄱ': '木', 'ㄲ': '木', 'ㅋ': '木', 'ㄴ': '火', 'ㄷ': '火', 'ㄸ': '火', 'ㄹ': '火', 'ㅌ': '火',
     'ㅇ': '土', 'ㅎ': '土', 'ㅅ': '金', 'ㅆ': '金', 'ㅈ': '金', 'ㅉ': '金', 'ㅊ': '金', 'ㅁ': '水', 'ㅂ': '水', 'ㅃ': '水', 'ㅍ': '水' };
   const SOUND_HAERYE = Object.assign({}, SOUND_STD, { 'ㅇ': '水', 'ㅎ': '水', 'ㅁ': '土', 'ㅂ': '土', 'ㅃ': '土', 'ㅍ': '土' });
+  // 발음 음양: 가운데 모음 기준 (양성모음 ㅏㅑㅗㅛ 계열 陽, 그 외 ㅓㅕㅜㅠㅡㅣ 계열 陰)
+  const VOWEL_YANG = [0, 1, 2, 3, 8, 9, 10, 11, 12]; // ㅏ ㅐ ㅑ ㅒ ㅗ ㅘ ㅙ ㅚ ㅛ
+  function vowelYinYang(syl) {
+    const c = syl.charCodeAt(0) - 0xac00;
+    if (c < 0 || c >= 11172) return '陰';
+    return VOWEL_YANG.includes(Math.floor((c % 588) / 28)) ? '陽' : '陰';
+  }
   function soundElement(syl, school) { return (school === 'haerye' ? SOUND_HAERYE : SOUND_STD)[cho(syl)] || '土'; }
 
   function relation(a, b) {
@@ -640,14 +689,14 @@ window.SURI81 = [null,
     const all = surname.concat(given);
     const four = fourPillars(surname.map(x => x.hanja.strokes), given.map(x => x.hanja.strokes));
     // 수리 4격: 길 9, 반길 4, 흉 0 → /36
-    const suriScore = four.reduce((a, f) => a + (f.level === 2 ? 9 : f.level === 1 ? 4 : 0), 0);
+    const suriScore = four.reduce((a, f) => a + (f.level === 2 ? 8 : f.level === 1 ? 4 : 0), 0); // /32
 
     // 수리오행: 각 격 수의 끝자리 (1·2 木, 3·4 火, 5·6 土, 7·8 金, 9·0 水) 흐름 원→형→이→정
     four.forEach(f => { f.element = suriElement(f.n); });
     const relPt = { gen: 10, same: 6, ctrl: 0 };
     const suriElPairs = [];
     for (let i = 0; i < 3; i++) suriElPairs.push({ a: four[i].key, b: four[i + 1].key, ea: four[i].element, eb: four[i + 1].element, rel: relation(four[i].element, four[i + 1].element) });
-    const suriElScore = Math.round(suriElPairs.reduce((a, p) => a + relPt[p.rel], 0) / 3); // /10
+    const suriElScore = Math.round(suriElPairs.reduce((a, p) => a + relPt[p.rel], 0) / 3 * 0.8); // /8
 
     // 발음오행 (연속 음절 간 관계) → /20
     const sounds = all.map(x => soundElement(x.syl, opts.school));
@@ -655,7 +704,12 @@ window.SURI81 = [null,
     for (let i = surname.length - 1; i < all.length - 1; i++) {
       soundPairs.push({ a: all[i].syl, b: all[i + 1].syl, ea: sounds[i], eb: sounds[i + 1], rel: relation(sounds[i], sounds[i + 1]) });
     }
-    const soundScore = Math.round(soundPairs.reduce((a, p) => a + relPt[p.rel], 0) / soundPairs.length * 2);
+    const soundScore = Math.round(soundPairs.reduce((a, p) => a + relPt[p.rel], 0) / soundPairs.length * 1.8); // /18
+
+    // 발음 음양 (모음) → /8 : 성과 이름 소리의 음양이 섞여 있으면 조화
+    const soundYY = all.map(x => vowelYinYang(x.syl));
+    const soundBalanced = soundYY.some(v => v === '陽') && soundYY.some(v => v === '陰');
+    const soundYYScore = soundBalanced ? 8 : 0;
 
     // 획수 음양 (홀수 陽, 짝수 陰) → /8
     const yy = all.map(x => (x.hanja.strokes % 2 ? '陽' : '陰'));
@@ -689,12 +743,35 @@ window.SURI81 = [null,
     const common = given.filter(x => ((W.NAME_HANJA || {})[x.syl] || '').includes(x.hanja.ch)).length;
     const charScore = Math.max(0, Math.min(6, 2 + common * 2 - avoid.length * 3 + (given.every(x => x.hanja.meaning) ? 0 : -2)));
 
-    const total = suriScore + suriElScore + soundScore + yyScore + jawonScore + charScore;
+    const total = suriScore + suriElScore + soundScore + soundYYScore + yyScore + jawonScore + charScore;
     return {
-      total, four, suriScore, suriElPairs, suriElScore, soundPairs, soundScore, yinyang: yy, balanced, yyScore,
+      total, four, suriScore, suriElPairs, suriElScore, soundPairs, soundScore, soundYY, soundBalanced, soundYYScore, yinyang: yy, balanced, yyScore,
       jawon, jawonScore, jawonNote, avoid, charScore,
       grade: total >= 90 ? '최상' : total >= 80 ? '상' : total >= 68 ? '중상' : total >= 55 ? '중' : '하'
     };
+  }
+  // 한자 선택지 표시: 이 한자를 넣었을 때 사격·자원오행·획수 음양이 모두 좋은지(good),
+  // 사주의 용신·희신(사주 없으면 없음) 기운인지(boost)
+  function hanjaMarks(surname, given, idx, h, saju) {
+    const g = given.map((x, i) => (i === idx ? { syl: x.syl, hanja: h } : x));
+    const four = fourPillars(surname.map(x => x.hanja.strokes), g.map(x => x.hanja.strokes));
+    const suriOk = four.every(f => f.level === 2);
+    const yy = surname.concat(g).map(x => x.hanja.strokes % 2);
+    const yyOk = yy.includes(0) && yy.includes(1);
+    const seq = [surname[surname.length - 1].hanja.element].concat(g.map(x => x.hanja.element));
+    // 자원오행: 사주가 있으면 점수 계산과 같게 '기신이 아닐 것', 없으면 '성→이름 흐름에 상극이 없을 것'
+    let elOk = true;
+    if (saju && saju.yong) elOk = h.element !== saju.yong.gi;
+    else for (let i = 0; i < seq.length - 1; i++) if (relation(seq[i], seq[i + 1]) === 'ctrl') elOk = false;
+    const boost = !!(saju && saju.yong && (h.element === saju.yong.yong || saju.yong.hui.includes(h.element)));
+    return { good: suriOk && yyOk && elOk, boost, suriOk, yyOk, elOk };
+  }
+  // 넴유베식 '선별 한자': 이름 다빈도 한자 + 뜻이 무난한 교육용/상용 한자
+  function isCurated(h) {
+    const pref = (W.NAME_HANJA || {})[h.reading] || '';
+    if (pref.includes(h.ch)) return true;
+    if ((W.AVOID_HANJA || '').includes(h.ch)) return false;
+    return goodMeaning(h) && (h.edu || h.freq >= 20);
   }
   function suriElement(n) { return ['水', '木', '木', '火', '火', '土', '土', '金', '金', '水'][n % 10]; }
 
@@ -756,7 +833,7 @@ window.SURI81 = [null,
 
   const api = { ELEMENTS, EL_KO, REL_KO, relation, soundElement, cho, isHangulSyllable, hanjaList, findHanja,
     suri, fourPillars, saju, evaluate, recommend, candidatesFor, sunLongitude, jdFromUTC,
-    lunarToSolar, solarToLunar, yongsin, utcOffsetHours, suriElement,
+    lunarToSolar, solarToLunar, yongsin, utcOffsetHours, suriElement, vowelYinYang, hanjaMarks, isCurated, goodMeaning,
     STEMS, BRANCHES };
   root.NameEngine = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -882,9 +959,10 @@ window.SURI81 = [null,
       <div class="score-circle g-${ev.grade}"><b>${ev.total}</b><small>${ev.grade}</small></div>
     </div>
     <button type="button" class="fav-btn ${isFav ? 'on' : ''}" data-fav='${esc(JSON.stringify({ key: favKey, ko: nameKo, hj: nameHj, s: surname.map(x => [x.syl, x.hanja.ch]), g: given.map(x => [x.syl, x.hanja.ch]) }))}'>${isFav ? '♥ 찜한 이름' : '♡ 찜하기'}</button>
+    <button type="button" class="cert-btn" data-cert='${esc(JSON.stringify({ s: surname.map(x => [x.syl, x.hanja.ch]), g: given.map(x => [x.syl, x.hanja.ch]) }))}'>📄 작명서 보기</button>
 
     <div class="scores">
-      ${bar('수리 4격', ev.suriScore, 36)}${bar('수리오행', ev.suriElScore, 10)}${bar('발음오행', ev.soundScore, 20)}${bar('자원오행', ev.jawonScore, 20)}${bar('획수 음양', ev.yyScore, 8)}${bar('글자 적합도', ev.charScore, 6)}
+      ${bar('수리 4격', ev.suriScore, 32)}${bar('수리오행', ev.suriElScore, 8)}${bar('발음오행', ev.soundScore, 18)}${bar('발음 음양', ev.soundYYScore, 8)}${bar('자원오행', ev.jawonScore, 20)}${bar('획수 음양', ev.yyScore, 8)}${bar('글자 적합도', ev.charScore, 6)}
     </div>
 
     <h4>글자 풀이</h4>
@@ -912,6 +990,11 @@ window.SURI81 = [null,
     }).join('')}</div>
     <p class="small muted">초성의 소리 오행이 이어지며 서로 살려주면(상생) 부르기 좋고 기운이 순하다고 봅니다.</p>
 
+    <h4>발음 음양</h4>
+    <p class="small">${ev.soundYY.map((v, i) => `<span class="yy ${v === '陽' ? 'yang' : 'yin'}">${esc(all[i].syl)} ${v}</span>`).join(' ')}
+      — ${ev.soundBalanced ? '소리의 음양이 섞여 조화롭습니다.' : '소리의 음양이 한쪽으로 치우쳐 있습니다.'}</p>
+    <p class="small muted">가운데 모음으로 나눕니다. ㅏ·ㅑ·ㅗ·ㅛ 계열은 양(陽), ㅓ·ㅕ·ㅜ·ㅠ·ㅡ·ㅣ 계열은 음(陰)입니다.</p>
+
     <h4>획수 음양</h4>
     <p class="small">${ev.yinyang.map((v, i) => `<span class="yy ${v === '陽' ? 'yang' : 'yin'}">${all[i].hanja.ch} ${v}</span>`).join(' ')}
       — ${ev.balanced ? '음과 양이 섞여 조화롭습니다.' : '모두 같은 음양으로 치우쳐 있습니다.'}</p>
@@ -921,6 +1004,61 @@ window.SURI81 = [null,
     ${ev.avoid.length ? `<p class="warn small">⚠ ${ev.avoid.join(', ')}: 전통적으로 이름에 잘 쓰지 않는 불용한자로 분류되기도 합니다.</p>` : ''}
     ${opts.alts && opts.alts.length ? `<h4>같은 이름, 다른 한자 조합</h4><div class="alts">${opts.alts.map(a =>
       `<button type="button" class="alt" data-alt='${esc(JSON.stringify(a.given.map(g => [g.syl, g.hanja.ch])))}'><b>${a.given.map(g => g.hanja.ch).join('')}</b><small>${a.ev.total}점</small></button>`).join('')}</div>` : ''}`;
+  }
+
+  // ── 작명서 ──────────────────────────────────────────
+  const GENDER_KO = { M: '남아', F: '여아', A: '-' };
+  function certificateHTML(surname, given) {
+    const sj = sajuForCalc();
+    const ev = E.evaluate(surname, given, { saju: sj, school: state.school });
+    const all = surname.concat(given);
+    const today = new Date();
+    const L = sj && sj.lunarDate;
+    const lv = f => ['흉', '반길', '길'][f.level];
+    return `<article class="cert">
+      <header class="cert-head">
+        <div class="cert-brand">이름결 작명서</div>
+        <div class="cert-name">${all.map(x => `<div class="cert-char"><b>${x.hanja.ch}</b><span>${esc(x.syl)}</span><small>${esc((x.hanja.meaning || '').split(',')[0])} ${esc(x.syl)}</small></div>`).join('')}</div>
+        <div class="cert-score"><b>${ev.total}</b><small>/100 · ${ev.grade}</small></div>
+      </header>
+      <section class="cert-info">
+        <div><small>성별</small>${GENDER_KO[state.gender]}</div>
+        <div><small>생년월일</small>${sj ? `양력 ${sj.solar.y}.${sj.solar.m}.${sj.solar.d}${L ? `<br>음력 ${L.y}.${L.leap ? '윤' : ''}${L.m}.${L.d}` : ''}` : '-'}</div>
+        <div><small>태어난 시각</small>${sj && sj.hasTime ? esc(state.time) : '-'}</div>
+        <div><small>사주</small>${sj ? sj.pillars.map(p => p.stem + p.branch).join(' ') : '-'}</div>
+        <div><small>용신 · 희신</small>${sj ? sj.yong.yong + ' · ' + sj.yong.hui.join('') : '-'}</div>
+      </section>
+      <section>
+        <h5>글자 풀이</h5>
+        <table class="chars"><thead><tr><th>글자</th><th>뜻</th><th>원획</th><th>자원오행</th><th>발음오행</th><th>발음 음양</th><th>획수 음양</th></tr></thead><tbody>
+        ${all.map((x, i) => `<tr><td><b class="hj">${x.hanja.ch}</b> ${esc(x.syl)}</td><td>${esc(x.hanja.meaning || '-')}</td><td>${x.hanja.strokes}</td><td>${x.hanja.element}</td><td>${E.soundElement(x.syl, state.school)}</td><td>${ev.soundYY[i]}</td><td>${ev.yinyang[i]}</td></tr>`).join('')}
+        </tbody></table>
+      </section>
+      <section>
+        <h5>운세 흐름 (수리 4격)</h5>
+        ${ev.four.map(f => `<div class="cert-four"><div><b>${f.period.split(' ')[0]}</b><small>${f.key} · ${f.n}수 ${f.element}</small></div><div><b>${f.name}</b> <span class="lv ${['bad', 'mid', 'good'][f.level]}">${lv(f)}</span><br><small>${f.desc}</small></div></div>`).join('')}
+      </section>
+      <section class="cert-grid">
+        <div><h5>발음오행</h5><p>${ev.soundPairs.map(p => `${esc(p.a)}${p.ea}→${esc(p.b)}${p.eb} ${E.REL_KO[p.rel]}`).join(', ')}</p></div>
+        <div><h5>발음 음양</h5><p>${ev.soundYY.join(' ')} · ${ev.soundBalanced ? '조화' : '치우침'}</p></div>
+        <div><h5>수리오행</h5><p>${ev.four.map(f => f.element).join('→')} · ${ev.suriElPairs.map(p => E.REL_KO[p.rel]).join(', ')}</p></div>
+        <div><h5>획수 음양</h5><p>${ev.yinyang.join(' ')} · ${ev.balanced ? '조화' : '치우침'}</p></div>
+        <div class="wide"><h5>자원오행 · 사주 보완</h5><p>${given.map(g => g.hanja.ch + g.hanja.element).join(' ')} — ${esc(ev.jawonNote)}</p></div>
+      </section>
+      <section class="cert-scores">
+        ${[['수리 4격', ev.suriScore, 32], ['수리오행', ev.suriElScore, 8], ['발음오행', ev.soundScore, 18], ['발음 음양', ev.soundYYScore, 8], ['자원오행', ev.jawonScore, 20], ['획수 음양', ev.yyScore, 8], ['글자 적합도', ev.charScore, 6]]
+          .map(([l, v, m]) => `<span>${l} <b>${v}</b>/${m}</span>`).join('')}
+      </section>
+      <footer class="cert-foot">${today.getFullYear()}.${today.getMonth() + 1}.${today.getDate()} 작성 · 성명학은 학파마다 해석이 다른 전통 이론으로, 이 작명서는 참고용입니다. 출생신고 전 인명용 한자 여부를 확인하세요.</footer>
+    </article>`;
+  }
+  function openCertificate(data) {
+    const s = data.s.map(([syl, ch]) => ({ syl, hanja: E.findHanja(syl, ch) }));
+    const g = data.g.map(([syl, ch]) => ({ syl, hanja: E.findHanja(syl, ch) }));
+    const html = certificateHTML(s, g);
+    $('#printArea').innerHTML = html;
+    openModal(`<div class="cert-actions"><button type="button" class="btn" id="printBtn">인쇄 · PDF로 저장</button>
+      <p class="small muted">인쇄 화면에서 프린터 대신 'PDF로 저장'을 고르면 파일로 받을 수 있어요.</p></div>${html}`);
   }
 
   // ── 추천 탭 ─────────────────────────────────────────
@@ -964,22 +1102,46 @@ window.SURI81 = [null,
     const syls = name.split('').filter(E.isHangulSyllable);
     if (!syls.length) { pick.innerHTML = ''; out.innerHTML = '<p class="muted small">이름(한 글자 또는 두 글자)을 한글로 입력하면 글자마다 한자를 고를 수 있어요.</p>'; return; }
     const q = ($('#anaFilter').value || '').trim();
-    pick.innerHTML = syls.map((s, i) => {
-      let list = E.hanjaList(s);
+    const sur = surnameParts();
+    const sj = sajuForCalc();
+    // 1) 글자별 후보와 현재 선택 확정
+    const lists = syls.map((s, i) => {
       const pref = window.NAME_HANJA[s] || '';
       const rank = c => { const k = pref.indexOf(c); return k < 0 ? 99 : k; };
-      list.sort((a, b) => (rank(a.ch) - rank(b.ch)) || (!!b.meaning - !!a.meaning));
-      if (!list.some(h => h.ch === state.anaHanja[i])) state.anaHanja[i] = list[0] ? list[0].ch : '';
-      const shown = q ? list.filter(h => h.meaning.includes(q) || h.ch === q || h.ch === state.anaHanja[i]) : list;
-      return `<div class="pickrow"><div class="pickhead">'${esc(s)}' 한자 <small class="muted">${list.length}자</small></div>
-        <div class="chips scroll">${shown.map(h => `<button type="button" class="chip ${h.ch === state.anaHanja[i] ? 'on' : ''}" data-i="${i}" data-v="${h.ch}">${h.ch}<small>${esc((h.meaning || '').split(',')[0] || '-')} · ${h.strokes}획 ${h.element}</small></button>`).join('') || '<span class="muted small">검색 결과 없음</span>'}</div></div>`;
-    }).join('');
+      const list = E.hanjaList(s).sort((a, b) => (rank(a.ch) - rank(b.ch)) || (!!b.meaning - !!a.meaning));
+      if (!list.some(h => h.ch === state.anaHanja[i])) state.anaHanja[i] = (list.find(E.isCurated) || list[0] || {}).ch || '';
+      return list;
+    });
     state.anaHanja.length = syls.length;
-    const sur = surnameParts();
-    if (!sur) { out.innerHTML = '<p class="warn">성과 성의 한자를 먼저 선택해주세요.</p>'; return; }
     const given = syls.map((s, i) => ({ syl: s, hanja: E.findHanja(s, state.anaHanja[i]) }));
-    if (given.some(g => !g.hanja)) { out.innerHTML = '<p class="warn">이 글자에 해당하는 인명용 한자가 없습니다.</p>'; return; }
-    const ev = E.evaluate(sur, given, { saju: sajuForCalc(), school: state.school });
+    const canMark = sur && given.every(g => g.hanja);
+    // 2) 선택지 표시 (👍: 사격·자원오행·획수 음양 모두 좋음, ❗: 용신·희신 기운)
+    pick.innerHTML = `
+      <div class="seg small-seg" role="radiogroup" aria-label="한자 선택지">
+        <label><input type="radio" name="hanjaSet" value="curated" ${state.allHanja ? '' : 'checked'}>선별 한자</label>
+        <label><input type="radio" name="hanjaSet" value="all" ${state.allHanja ? 'checked' : ''}>인명 한자 전체</label>
+      </div>
+      <p class="legend small muted"><span class="mk good">👍</span> 이 이름에서 사격(4격 모두 길)·자원오행·획수 음양이 모두 좋은 한자 ${sj ? '<span class="muted">(자원오행: 기신이 아닐 것)</span>' : '<span class="muted">(자원오행: 성→이름 상극 없음)</span>'}
+        ${sj ? `<br><span class="mk boost">!</span> 사주의 용신·희신(${sj.yong.yong}${sj.yong.hui.length ? '·' + sj.yong.hui.join('·') : ''}) 기운을 가진 한자` : '<br>생년월일을 넣으면 사주에 필요한 기운의 한자에 <span class="mk boost">!</span> 표시가 붙어요.'}</p>` +
+      syls.map((s, i) => {
+        const list = lists[i];
+        let shown = state.allHanja ? list : list.filter(h => E.isCurated(h) || h.ch === state.anaHanja[i]);
+        if (q) shown = shown.filter(h => h.meaning.includes(q) || h.ch === q || h.ch === state.anaHanja[i]);
+        const marks = {};
+        if (canMark) shown.forEach(h => { marks[h.ch] = E.hanjaMarks(sur, given, i, h, sj); });
+        shown = shown.slice().sort((a, b) => ((marks[b.ch] || {}).good - (marks[a.ch] || {}).good) || ((marks[b.ch] || {}).boost - (marks[a.ch] || {}).boost));
+        const goodCount = shown.filter(h => (marks[h.ch] || {}).good).length;
+        return `<div class="pickrow"><div class="pickhead">'${esc(s)}' 한자 <small class="muted">${shown.length}자${canMark ? ` · 👍 ${goodCount}자` : ''}</small></div>
+          <div class="chips scroll">${shown.map(h => {
+            const m = marks[h.ch] || {};
+            return `<button type="button" class="chip ${h.ch === state.anaHanja[i] ? 'on' : ''}" data-i="${i}" data-v="${h.ch}">
+              ${m.good || m.boost ? `<span class="marks">${m.good ? '<span class="mk good">👍</span>' : ''}${m.boost ? '<span class="mk boost">!</span>' : ''}</span>` : ''}${h.ch}<small>${esc((h.meaning || '').split(',')[0] || '-')} · ${h.strokes}획 ${h.element}</small></button>`;
+          }).join('') || '<span class="muted small">검색 결과 없음</span>'}</div>
+          ${canMark && !goodCount ? '<p class="small muted">이 성·이름 조합에서는 조건을 모두 만족하는 한자가 없어요. 다른 글자의 한자를 바꾸면 달라질 수 있어요.</p>' : ''}</div>`;
+      }).join('');
+    if (!sur) { out.innerHTML = '<p class="warn">성과 성의 한자를 먼저 선택해주세요.</p>'; return; }
+    if (!canMark) { out.innerHTML = '<p class="warn">이 글자에 해당하는 인명용 한자가 없습니다.</p>'; return; }
+    const ev = E.evaluate(sur, given, { saju: sj, school: state.school });
     out.innerHTML = analysisHTML(sur, given, ev);
     save();
   }
@@ -1090,6 +1252,7 @@ window.SURI81 = [null,
     });
     $('#anaName').addEventListener('input', e => { state.anaName = e.target.value.trim().slice(0, 2); state.anaHanja = []; renderAnalyze(); });
     $('#anaFilter').addEventListener('input', renderAnalyze);
+    $('#anaPick').addEventListener('change', e => { if (e.target.name === 'hanjaSet') { state.allHanja = e.target.value === 'all'; renderAnalyze(); } });
     $('#anaPick').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; state.anaHanja[+b.dataset.i] = b.dataset.v; renderAnalyze(); });
     $('#favList').addEventListener('click', e => {
       const d = e.target.closest('[data-del]');
@@ -1100,6 +1263,9 @@ window.SURI81 = [null,
     });
     $$('.tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
     document.addEventListener('click', e => {
+      const c = e.target.closest('.cert-btn');
+      if (c) { openCertificate(JSON.parse(c.dataset.cert)); return; }
+      if (e.target.id === 'printBtn') { window.print(); return; }
       const f = e.target.closest('.fav-btn');
       if (f) {
         const data = JSON.parse(f.dataset.fav); toggleFav(data);

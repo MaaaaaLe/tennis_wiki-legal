@@ -16,6 +16,13 @@
   const SOUND_STD = { 'ㄱ': '木', 'ㄲ': '木', 'ㅋ': '木', 'ㄴ': '火', 'ㄷ': '火', 'ㄸ': '火', 'ㄹ': '火', 'ㅌ': '火',
     'ㅇ': '土', 'ㅎ': '土', 'ㅅ': '金', 'ㅆ': '金', 'ㅈ': '金', 'ㅉ': '金', 'ㅊ': '金', 'ㅁ': '水', 'ㅂ': '水', 'ㅃ': '水', 'ㅍ': '水' };
   const SOUND_HAERYE = Object.assign({}, SOUND_STD, { 'ㅇ': '水', 'ㅎ': '水', 'ㅁ': '土', 'ㅂ': '土', 'ㅃ': '土', 'ㅍ': '土' });
+  // 발음 음양: 가운데 모음 기준 (양성모음 ㅏㅑㅗㅛ 계열 陽, 그 외 ㅓㅕㅜㅠㅡㅣ 계열 陰)
+  const VOWEL_YANG = [0, 1, 2, 3, 8, 9, 10, 11, 12]; // ㅏ ㅐ ㅑ ㅒ ㅗ ㅘ ㅙ ㅚ ㅛ
+  function vowelYinYang(syl) {
+    const c = syl.charCodeAt(0) - 0xac00;
+    if (c < 0 || c >= 11172) return '陰';
+    return VOWEL_YANG.includes(Math.floor((c % 588) / 28)) ? '陽' : '陰';
+  }
   function soundElement(syl, school) { return (school === 'haerye' ? SOUND_HAERYE : SOUND_STD)[cho(syl)] || '土'; }
 
   function relation(a, b) {
@@ -281,14 +288,14 @@
     const all = surname.concat(given);
     const four = fourPillars(surname.map(x => x.hanja.strokes), given.map(x => x.hanja.strokes));
     // 수리 4격: 길 9, 반길 4, 흉 0 → /36
-    const suriScore = four.reduce((a, f) => a + (f.level === 2 ? 9 : f.level === 1 ? 4 : 0), 0);
+    const suriScore = four.reduce((a, f) => a + (f.level === 2 ? 8 : f.level === 1 ? 4 : 0), 0); // /32
 
     // 수리오행: 각 격 수의 끝자리 (1·2 木, 3·4 火, 5·6 土, 7·8 金, 9·0 水) 흐름 원→형→이→정
     four.forEach(f => { f.element = suriElement(f.n); });
     const relPt = { gen: 10, same: 6, ctrl: 0 };
     const suriElPairs = [];
     for (let i = 0; i < 3; i++) suriElPairs.push({ a: four[i].key, b: four[i + 1].key, ea: four[i].element, eb: four[i + 1].element, rel: relation(four[i].element, four[i + 1].element) });
-    const suriElScore = Math.round(suriElPairs.reduce((a, p) => a + relPt[p.rel], 0) / 3); // /10
+    const suriElScore = Math.round(suriElPairs.reduce((a, p) => a + relPt[p.rel], 0) / 3 * 0.8); // /8
 
     // 발음오행 (연속 음절 간 관계) → /20
     const sounds = all.map(x => soundElement(x.syl, opts.school));
@@ -296,7 +303,12 @@
     for (let i = surname.length - 1; i < all.length - 1; i++) {
       soundPairs.push({ a: all[i].syl, b: all[i + 1].syl, ea: sounds[i], eb: sounds[i + 1], rel: relation(sounds[i], sounds[i + 1]) });
     }
-    const soundScore = Math.round(soundPairs.reduce((a, p) => a + relPt[p.rel], 0) / soundPairs.length * 2);
+    const soundScore = Math.round(soundPairs.reduce((a, p) => a + relPt[p.rel], 0) / soundPairs.length * 1.8); // /18
+
+    // 발음 음양 (모음) → /8 : 성과 이름 소리의 음양이 섞여 있으면 조화
+    const soundYY = all.map(x => vowelYinYang(x.syl));
+    const soundBalanced = soundYY.some(v => v === '陽') && soundYY.some(v => v === '陰');
+    const soundYYScore = soundBalanced ? 8 : 0;
 
     // 획수 음양 (홀수 陽, 짝수 陰) → /8
     const yy = all.map(x => (x.hanja.strokes % 2 ? '陽' : '陰'));
@@ -330,12 +342,35 @@
     const common = given.filter(x => ((W.NAME_HANJA || {})[x.syl] || '').includes(x.hanja.ch)).length;
     const charScore = Math.max(0, Math.min(6, 2 + common * 2 - avoid.length * 3 + (given.every(x => x.hanja.meaning) ? 0 : -2)));
 
-    const total = suriScore + suriElScore + soundScore + yyScore + jawonScore + charScore;
+    const total = suriScore + suriElScore + soundScore + soundYYScore + yyScore + jawonScore + charScore;
     return {
-      total, four, suriScore, suriElPairs, suriElScore, soundPairs, soundScore, yinyang: yy, balanced, yyScore,
+      total, four, suriScore, suriElPairs, suriElScore, soundPairs, soundScore, soundYY, soundBalanced, soundYYScore, yinyang: yy, balanced, yyScore,
       jawon, jawonScore, jawonNote, avoid, charScore,
       grade: total >= 90 ? '최상' : total >= 80 ? '상' : total >= 68 ? '중상' : total >= 55 ? '중' : '하'
     };
+  }
+  // 한자 선택지 표시: 이 한자를 넣었을 때 사격·자원오행·획수 음양이 모두 좋은지(good),
+  // 사주의 용신·희신(사주 없으면 없음) 기운인지(boost)
+  function hanjaMarks(surname, given, idx, h, saju) {
+    const g = given.map((x, i) => (i === idx ? { syl: x.syl, hanja: h } : x));
+    const four = fourPillars(surname.map(x => x.hanja.strokes), g.map(x => x.hanja.strokes));
+    const suriOk = four.every(f => f.level === 2);
+    const yy = surname.concat(g).map(x => x.hanja.strokes % 2);
+    const yyOk = yy.includes(0) && yy.includes(1);
+    const seq = [surname[surname.length - 1].hanja.element].concat(g.map(x => x.hanja.element));
+    // 자원오행: 사주가 있으면 점수 계산과 같게 '기신이 아닐 것', 없으면 '성→이름 흐름에 상극이 없을 것'
+    let elOk = true;
+    if (saju && saju.yong) elOk = h.element !== saju.yong.gi;
+    else for (let i = 0; i < seq.length - 1; i++) if (relation(seq[i], seq[i + 1]) === 'ctrl') elOk = false;
+    const boost = !!(saju && saju.yong && (h.element === saju.yong.yong || saju.yong.hui.includes(h.element)));
+    return { good: suriOk && yyOk && elOk, boost, suriOk, yyOk, elOk };
+  }
+  // 넴유베식 '선별 한자': 이름 다빈도 한자 + 뜻이 무난한 교육용/상용 한자
+  function isCurated(h) {
+    const pref = (W.NAME_HANJA || {})[h.reading] || '';
+    if (pref.includes(h.ch)) return true;
+    if ((W.AVOID_HANJA || '').includes(h.ch)) return false;
+    return goodMeaning(h) && (h.edu || h.freq >= 20);
   }
   function suriElement(n) { return ['水', '木', '木', '火', '火', '土', '土', '金', '金', '水'][n % 10]; }
 
@@ -397,7 +432,7 @@
 
   const api = { ELEMENTS, EL_KO, REL_KO, relation, soundElement, cho, isHangulSyllable, hanjaList, findHanja,
     suri, fourPillars, saju, evaluate, recommend, candidatesFor, sunLongitude, jdFromUTC,
-    lunarToSolar, solarToLunar, yongsin, utcOffsetHours, suriElement,
+    lunarToSolar, solarToLunar, yongsin, utcOffsetHours, suriElement, vowelYinYang, hanjaMarks, isCurated, goodMeaning,
     STEMS, BRANCHES };
   root.NameEngine = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
