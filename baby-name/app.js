@@ -15,7 +15,7 @@
   };
 
   const state = Object.assign({
-    surname: '김', surnameHanja: '金', gender: 'A', birth: '', time: '', noTime: true, lmt: true, school: 'standard',
+    surname: '김', surnameHanja: '金', gender: 'A', birth: '', lunar: false, leap: false, time: '', noTime: true, lmt: true, school: 'standard',
     fixedSyl: '', fixedPos: 0, fixedHanja: '', include: '', tab: 'rec', anaName: '', anaHanja: []
   }, store.get('state', {}));
   let favorites = store.get('favorites', []);
@@ -55,15 +55,27 @@
   // ── 사주 ────────────────────────────────────────────
   function currentSaju() {
     if (!state.birth) return null;
-    const [y, m, d] = state.birth.split('-').map(Number);
+    let [y, m, d] = state.birth.split('-').map(Number);
     if (!y || !m || !d) return null;
+    if (state.lunar) {
+      const sol = E.lunarToSolar(y, m, d, state.leap);
+      if (!sol) return { error: `음력 ${y}년 ${state.leap ? '윤' : ''}${m}월 ${d}일은 없는 날짜예요.` };
+      ({ y, m, d } = sol);
+    }
     const b = { y, m, d };
     if (!state.noTime && state.time) { const [h, mi] = state.time.split(':').map(Number); b.hour = h; b.minute = mi; }
-    return E.saju(b, { lmt: state.lmt });
+    const sj = E.saju(b, { lmt: state.lmt });
+    sj.solar = b;
+    sj.lunarDate = E.solarToLunar(b.y, b.m, b.d);
+    return sj;
   }
+  // 오류 객체가 아닌 사주만 계산에 사용
+  const sajuForCalc = () => { const sj = currentSaju(); return sj && !sj.error ? sj : null; };
   function renderSaju(sj) {
     const box = $('#sajuBox');
-    if (!sj) { box.innerHTML = '<p class="muted small">생년월일(양력)을 입력하면 사주의 오행 분포를 분석해 부족한 기운을 이름으로 보완합니다. 출산 전이라면 예정일로 미리 볼 수 있어요.</p>'; return; }
+    if (!sj) { box.innerHTML = '<p class="muted small">생년월일을 입력하면 사주를 세우고 용신(사주에 필요한 오행)을 찾아 이름으로 보완합니다. 출산 전이라면 예정일로 미리 볼 수 있어요.</p>'; return; }
+    if (sj.error) { box.innerHTML = `<p class="warn small">${esc(sj.error)}</p>`; return; }
+    const Y = sj.yong, L = sj.lunarDate;
     const max = Math.max.apply(null, E.ELEMENTS.map(e => sj.count[e])) || 1;
     box.innerHTML = `
       <div class="pillars">${sj.hasTime ? '' : '<div class="pillar ghost"><div class="plabel">시주</div><div class="pch">?</div><div class="pch">?</div><div class="pko">시간 모름</div></div>'}${sj.pillars.slice().reverse().map(p => `
@@ -74,9 +86,16 @@
       <div class="bars">${E.ELEMENTS.map(e => `
         <div class="bar"><span class="bl">${elTag(e)}</span><span class="track"><span class="fill ${EL_CLASS[e]}" style="width:${sj.count[e] / max * 100}%"></span></span><b>${sj.count[e]}</b></div>`).join('')}
       </div>
-      <p class="small">일간(나를 상징하는 글자) <b>${sj.dayMaster}</b> ${elTag(sj.dayMasterEl)} ·
-        부족한 기운 ${sj.lacking.map(elTag).join(' ')}${sj.excess.length ? ` · 많은 기운 ${sj.excess.map(elTag).join(' ')}` : ''}</p>
-      <p class="muted small">부족한 오행을 자원오행(한자의 뜻·부수에 담긴 오행)으로 채우는 이름을 높게 평가합니다.</p>`;
+      <p class="small muted">양력 ${sj.solar.y}.${sj.solar.m}.${sj.solar.d}${L ? ` · 음력 ${L.y}.${L.leap ? '윤' : ''}${L.m}.${L.d}` : ''}${sj.dst ? ' · 서머타임 시기라 1시간 보정했어요' : ''}${sj.utcOffset === 8.5 ? ' · 당시 표준시(UTC+8:30) 적용' : ''}</p>
+      <p class="small">일간(나를 상징하는 글자) <b>${sj.dayMaster}</b> ${elTag(sj.dayMasterEl)} · <b>${Y.strong ? '신강' : '신약'}</b> 사주
+        <span class="muted">(일간을 돕는 힘 ${Y.support}/${Y.total})</span></p>
+      <div class="yong">
+        <div><small>용신</small>${elTag(Y.yong)}</div>
+        <div><small>희신</small>${Y.hui.map(elTag).join(' ')}</div>
+        <div><small>기신</small>${elTag(Y.gi)}</div>
+      </div>
+      <p class="small">${esc(Y.reason)}.${Y.johu ? ` ${Y.johu === '水' ? '여름' : '겨울'}에 태어나 ${elTag(Y.johu)} 기운으로 온도를 조절(조후)하는 것도 좋아요.` : ''}</p>
+      <p class="muted small">이름 한자의 자원오행이 용신·희신이면 가점, 기신이면 감점합니다. 억부법을 바탕으로 한 간이 판단이며, 전문가마다 용신 판단이 다를 수 있어요.</p>`;
   }
 
   // ── 분석 결과 렌더 ──────────────────────────────────
@@ -99,7 +118,7 @@
     <button type="button" class="fav-btn ${isFav ? 'on' : ''}" data-fav='${esc(JSON.stringify({ key: favKey, ko: nameKo, hj: nameHj, s: surname.map(x => [x.syl, x.hanja.ch]), g: given.map(x => [x.syl, x.hanja.ch]) }))}'>${isFav ? '♥ 찜한 이름' : '♡ 찜하기'}</button>
 
     <div class="scores">
-      ${bar('수리 4격', ev.suriScore, 40)}${bar('발음오행', ev.soundScore, 20)}${bar('자원오행', ev.jawonScore, 20)}${bar('획수 음양', ev.yyScore, 10)}${bar('글자 적합도', ev.charScore, 10)}
+      ${bar('수리 4격', ev.suriScore, 36)}${bar('수리오행', ev.suriElScore, 10)}${bar('발음오행', ev.soundScore, 20)}${bar('자원오행', ev.jawonScore, 20)}${bar('획수 음양', ev.yyScore, 8)}${bar('글자 적합도', ev.charScore, 6)}
     </div>
 
     <h4>글자 풀이</h4>
@@ -112,8 +131,12 @@
     <div class="four">${ev.four.map(f => `
       <div class="frow"><div class="fkey"><b>${f.key}</b><small>${f.period}</small></div>
         <div class="fnum">${f.n}<small>수</small></div>
-        <div class="fdesc"><span class="lv ${LEVEL[f.level][1]}">${LEVEL[f.level][0]}</span> <b>${f.name}</b><br><small>${f.desc}</small><br><small class="muted">${f.formula}</small></div></div>`).join('')}
+        <div class="fdesc"><span class="lv ${LEVEL[f.level][1]}">${LEVEL[f.level][0]}</span> <b>${f.name}</b> ${elTag(f.element)}<br><small>${f.desc}</small><br><small class="muted">${f.formula}</small></div></div>`).join('')}
     </div>
+
+    <h4>수리오행</h4>
+    <div class="flow">${ev.four.map((f, i) => `<span class="fnode">${f.key} ${elTag(f.element)}</span>${i < 3 ? `<span class="rel ${ev.suriElPairs[i].rel}">${E.REL_KO[ev.suriElPairs[i].rel]}</span>` : ''}`).join('')}</div>
+    <p class="small muted">각 격 수의 끝자리로 오행을 정합니다 (1·2 목, 3·4 화, 5·6 토, 7·8 금, 9·0 수). 원격→형격→이격→정격이 서로 살려주면 좋다고 봅니다.</p>
 
     <h4>발음오행 <small class="muted">${state.school === 'haerye' ? '해례본 기준' : '현대 통용 기준'}</small></h4>
     <div class="flow">${all.map((x, i) => {
@@ -151,7 +174,7 @@
     const sur = surnameParts();
     const out = $('#recResults');
     if (!sur) { out.innerHTML = '<p class="warn">성과 성의 한자를 먼저 선택해주세요.</p>'; return; }
-    const sj = currentSaju();
+    const sj = sajuForCalc();
     const opts = { surname: sur, gender: state.gender, saju: sj, school: state.school, limit: 40, include: state.include || '' };
     if (state.fixedSyl && state.fixedHanja) opts.fixed = { pos: +state.fixedPos, syl: state.fixedSyl, hanja: E.findHanja(state.fixedSyl, state.fixedHanja) };
     lastResults = E.recommend(opts);
@@ -190,7 +213,7 @@
     if (!sur) { out.innerHTML = '<p class="warn">성과 성의 한자를 먼저 선택해주세요.</p>'; return; }
     const given = syls.map((s, i) => ({ syl: s, hanja: E.findHanja(s, state.anaHanja[i]) }));
     if (given.some(g => !g.hanja)) { out.innerHTML = '<p class="warn">이 글자에 해당하는 인명용 한자가 없습니다.</p>'; return; }
-    const ev = E.evaluate(sur, given, { saju: currentSaju(), school: state.school });
+    const ev = E.evaluate(sur, given, { saju: sajuForCalc(), school: state.school });
     out.innerHTML = analysisHTML(sur, given, ev);
     save();
   }
@@ -200,7 +223,7 @@
     const box = $('#favList');
     $('#favCount').textContent = favorites.length ? favorites.length : '';
     if (!favorites.length) { box.innerHTML = '<p class="muted">마음에 드는 이름에 ♡를 눌러 모아보세요.</p>'; return; }
-    const sj = currentSaju();
+    const sj = sajuForCalc();
     box.innerHTML = favorites.map((f, i) => {
       const s = f.s.map(([syl, ch]) => ({ syl, hanja: E.findHanja(syl, ch) }));
       const g = f.g.map(([syl, ch]) => ({ syl, hanja: E.findHanja(syl, ch) }));
@@ -229,7 +252,7 @@
   }
   function closeModal() { $('#modal').hidden = true; document.body.classList.remove('noscroll'); }
   function showDetail(sur, given, alts) {
-    const ev = E.evaluate(sur, given, { saju: currentSaju(), school: state.school });
+    const ev = E.evaluate(sur, given, { saju: sajuForCalc(), school: state.school });
     openModal(analysisHTML(sur, given, ev, { alts }));
   }
 
@@ -254,7 +277,25 @@
     // 초기값 반영
     $('#surname').value = state.surname;
     $$('input[name=gender]').forEach(r => r.checked = r.value === state.gender);
-    $('#birth').value = state.birth; $('#time').value = state.time;
+    const opt = (v, t) => `<option value="${v}">${t}</option>`;
+    const fillDays = () => {
+      const max = state.lunar ? 30 : (+$('#by').value && +$('#bm').value ? new Date(+$('#by').value, +$('#bm').value, 0).getDate() : 31);
+      const cur = $('#bd').value;
+      $('#bd').innerHTML = opt('', '일') + Array.from({ length: max }, (_, i) => opt(i + 1, (i + 1) + '일')).join('');
+      if (+cur && +cur <= max) $('#bd').value = cur;
+    };
+    $('#by').innerHTML = opt('', '년') + Array.from({ length: 2050 - 1930 + 1 }, (_, i) => 2050 - i).map(y => opt(y, y + '년')).join('');
+    $('#bm').innerHTML = opt('', '월') + Array.from({ length: 12 }, (_, i) => opt(i + 1, (i + 1) + '월')).join('');
+    if (state.birth) { const [y, m, d] = state.birth.split('-'); $('#by').value = +y; $('#bm').value = +m; fillDays(); $('#bd').value = +d; } else fillDays();
+    const readBirth = () => {
+      const y = $('#by').value, m = $('#bm').value, d = $('#bd').value;
+      state.birth = y && m && d ? `${y}-${m}-${d}` : '';
+      refreshAll();
+    };
+    ['#by', '#bm'].forEach(id => $(id).addEventListener('change', () => { fillDays(); readBirth(); }));
+    $('#bd').addEventListener('change', readBirth);
+    $('#time').value = state.time;
+    $('#cal').value = state.lunar ? 'lunar' : 'solar'; $('#leap').checked = state.leap; $('#leapWrap').hidden = !state.lunar;
     $('#noTime').checked = state.noTime; $('#time').disabled = state.noTime;
     $('#lmt').checked = state.lmt; $('#school').value = state.school;
     $('#fixedSyl').value = state.fixedSyl; $('#fixedPos').value = String(state.fixedPos);
@@ -265,7 +306,8 @@
     $('#surname').addEventListener('input', e => { state.surname = e.target.value.trim(); renderSurname(); refreshAll(); });
     $('#surnameHanja').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; state.surnameHanja = b.dataset.v; renderSurname(); refreshAll(); });
     $$('input[name=gender]').forEach(r => r.addEventListener('change', () => { state.gender = r.value; save(); }));
-    $('#birth').addEventListener('change', e => { state.birth = e.target.value; refreshAll(); });
+    $('#cal').addEventListener('change', e => { state.lunar = e.target.value === 'lunar'; $('#leapWrap').hidden = !state.lunar; fillDays(); readBirth(); });
+    $('#leap').addEventListener('change', e => { state.leap = e.target.checked; refreshAll(); });
     $('#time').addEventListener('change', e => { state.time = e.target.value; refreshAll(); });
     $('#noTime').addEventListener('change', e => { state.noTime = e.target.checked; $('#time').disabled = state.noTime; refreshAll(); });
     $('#lmt').addEventListener('change', e => { state.lmt = e.target.checked; refreshAll(); });

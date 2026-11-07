@@ -20,12 +20,14 @@
   python3 build_data.py path/to/moji.db path/to/hanja.txt > ../hanja-data.js
 """
 import json
+import os
 import sqlite3
 import sys
 import unicodedata
 from collections import Counter, defaultdict
 
 DB, HANJA_TXT = sys.argv[1], sys.argv[2]
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # ── 부수(강희 214부수) → 자원오행 ─────────────────────────────
 E = {}
@@ -76,6 +78,8 @@ def dueum(s):
         return s
     return chr(0xAC00 + c * 588 + v * 28 + t)
 
+from overrides import JAWON, STROKES  # noqa: E402
+
 NUM = {'一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10}
 
 con = sqlite3.connect(DB)
@@ -125,11 +129,18 @@ def won_strokes(ch):
     rad, rest = r.split('.')
     rad = rad.rstrip("'")
     rest = int(rest)
+    tot = int(total[ch].split()[0])
+    if ch in STROKES:
+        return STROKES[ch]
     if rest <= 0:
-        return int(total[ch].split()[0])
-    return rad_strokes[int(rad)] + rest
+        return tot
+    # 원획 = 부수를 원래 글자 획수로 환산한 값. 단 부수가 원형 그대로 쓰인 글자(泰, 成 등)는
+    # 유니코드 나머지 획수가 한국 옥편과 달라 전체 획수가 더 크므로 큰 값을 사용
+    return max(tot, rad_strokes[int(rad)] + rest)
 
 def jawon(ch, reading):
+    if ch in JAWON:
+        return JAWON[ch], 2
     r = rs[ch].split()[0]
     rad = int(r.split('.')[0].rstrip("'"))
     if rad in E:
@@ -169,7 +180,7 @@ for k in out:
     out[k].sort(key=lambda e: (-e[4], -e[5]))
 
 data = {k: [[e[0], e[1], e[2], e[3], e[4], min(e[5], 9999), e[6]] for e in v] for k, v in sorted(out.items())}
-sys.stdout.write('// 자동 생성 파일: tools/build_data.py 참고. 형식: 독음 -> [한자, 뜻, 원획, 자원오행, 교육용, 상용도, 오행추정]\n')
+sys.stdout.write('// 자동 생성 파일: tools/build_data.py 참고. 형식: 독음 -> [한자, 뜻, 원획, 자원오행, 교육용, 상용도, 오행출처(0 부수·1 발음추정·2 작명관용)]\n')
 sys.stdout.write('window.HANJA_DATA=')
 sys.stdout.write(json.dumps(data, ensure_ascii=False, separators=(',', ':')))
 sys.stdout.write(';\n')

@@ -122,7 +122,10 @@ table.chars tr.sur td { color: var(--muted); }
 .alts { display: flex; flex-wrap: wrap; gap: 6px; }
 .alt { font: inherit; display: flex; flex-direction: column; align-items: center; padding: 6px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface2); color: var(--text); cursor: pointer; }
 .alt b { font-size: 18px; } .alt small { font-size: 11px; color: var(--muted); }
-.pickrow { margin-bottom: 10px; } .pickhead { font-size: 14px; font-weight: 700; }
+.pickrow { margin-bottom: 10px; }
+.date-row { gap: 6px; } .date-row select { padding: 10px 6px; } .date-row #by { flex: 1.4; }
+.yong { display: flex; gap: 8px; margin: 8px 0; } .yong > div { flex: 1; background: var(--surface2); border-radius: 10px; padding: 8px; text-align: center; }
+.yong small { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; } .pickhead { font-size: 14px; font-weight: 700; }
 /* 모달 */
 #modal { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
 #modal[hidden] { display: none; }
@@ -160,10 +163,16 @@ footer b { color: var(--text); }
     <label class="f">성의 한자</label>
     <div id="surnameHanja" class="chips"></div>
 
-    <div class="row">
-      <div><label class="f" for="birth">생년월일 (양력)</label><input id="birth" type="date"></div>
-      <div><label class="f" for="time">태어난 시각</label><input id="time" type="time"></div>
+    <label class="f">생년월일</label>
+    <div class="row date-row">
+      <select id="cal" aria-label="양력/음력"><option value="solar">양력</option><option value="lunar">음력</option></select>
+      <select id="by" aria-label="년"></select>
+      <select id="bm" aria-label="월"></select>
+      <select id="bd" aria-label="일"></select>
     </div>
+    <label class="check" id="leapWrap" hidden><input id="leap" type="checkbox"> 윤달</label>
+    <label class="f" for="time">태어난 시각</label>
+    <input id="time" type="time">
     <label class="check"><input id="noTime" type="checkbox"> 시각 모름 (예정일 등)</label>
     <details style="margin-top:10px">
       <summary>계산 설정</summary>
@@ -216,8 +225,9 @@ footer b { color: var(--text); }
   </div>
 
   <footer>
-    <p><b>점수 구성</b> — 수리 4격(원형이정, 81수리) 40점 · 발음오행 20점 · 자원오행/사주 보완 20점 · 획수 음양 10점 · 글자 적합도 10점</p>
-    <p>획수는 성명학에서 쓰는 원획법(氵=水 4획, 扌=手 4획, 艹=艸 6획, 阝=阜·邑 등)으로 계산합니다. 자원오행은 부수 기준이며 부수로 판별되지 않는 글자(*)는 발음오행으로 추정했습니다. 사주는 양력 기준 절기(태양황경)로 계산합니다.</p>
+    <p><b>점수 구성</b> — 수리 4격(원형이정, 81수리) 36점 · 수리오행 10점 · 발음오행 20점 · 자원오행(용신 보완) 20점 · 획수 음양 8점 · 글자 적합도 6점. 배점은 이 앱의 기준이며 업계 표준은 아닙니다.</p>
+    <p>획수는 성명학에서 쓰는 원획법(氵=水 4획, 扌=手 4획, 艹=艸 6획, 阝=阜·邑 등)으로 계산합니다. 자원오행은 이름에 자주 쓰는 약 450자는 작명 관용값을, 나머지는 부수를 기준으로 하며 부수로 판별되지 않는 글자(*)는 발음오행으로 추정했습니다.</p>
+    <p>사주는 태양황경으로 계산한 절기를 기준으로 세우고, 음력 날짜는 삭(신월)과 중기를 천문 계산해 양력으로 바꿉니다. 한국의 서머타임(1948~1960, 1987~1988년)과 UTC+8:30 시기(1954~1961년)를 보정합니다. 용신은 억부법(월지 가중)과 조후를 바탕으로 한 간이 판단입니다.</p>
     <p>인명용 한자 목록은 Unicode Unihan(대법원 인명용 한자·교육용 한자) 데이터를, 한자 뜻은 libhangul 사전을 사용했습니다. 성명학은 학파마다 해석이 다른 전통 이론이며, 결과는 이름을 고르는 데 참고로만 활용해 주세요. 출생신고 전 대법원 전자가족관계등록시스템에서 인명용 한자 여부를 꼭 확인하세요.</p>
   </footer>
 </div>
