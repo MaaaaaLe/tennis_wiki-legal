@@ -31,6 +31,7 @@
 - `names-data.js` 성씨·인기 이름·이름용 한자·81수리 표
 - `hanja-data.js` 인명용 한자 8,094자 (자동 생성)
 - `tools/overrides.py` 자원오행·획수 작명 관용 보정표 (값을 고친 뒤 `build_data.py` 재실행)
+- `tools/verify.js` 정합성 검증 (`node baby-name/tools/verify.js`): 데이터 구조, 원획 기준표, 81수리, 4격 공식, 발음오행, 음력 왕복 변환·윤달, 사주 절입·일주 연속성·시주 경계, 점수 범위·추천 조건
 - `tools/build_data.py` 데이터 생성 스크립트 — Unicode Unihan(@mandel59/mojidata 패키지) + libhangul hanja.txt
 
 성명학은 학파마다 해석이 다른 전통 이론으로, 결과는 참고용입니다.

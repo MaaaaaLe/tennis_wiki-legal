@@ -36,7 +36,8 @@
 
   // ── 81수리 4격 ────────────────────────────────────────
   function suri(n) {
-    const k = n > 81 ? ((n - 1) % 80) + 1 : n;
+    let k = n;
+    while (k > 81) k -= 80; // 81을 넘으면 80을 뺌 (82→2, 161→81)
     const s = W.SURI81[k];
     return { n, k, name: s[0], level: s[1], desc: s[2] };
   }
