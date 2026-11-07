@@ -133,6 +133,46 @@ table.chars tr.sur td { color: var(--muted); }
 @media (min-width: 760px) { #modal { align-items: center; } .sheet { border-radius: 20px; max-height: 88vh; } }
 #modalBody { overflow-y: auto; padding: 22px 18px 32px; }
 #modalClose { position: absolute; right: 10px; top: 10px; z-index: 1; width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--surface2); color: var(--text); font-size: 18px; cursor: pointer; }
+.small-seg { margin-bottom: 8px; } .small-seg label { padding: 6px 0; font-size: 13px; }
+.legend { margin: 0 0 10px; line-height: 1.8; }
+.chip { position: relative; }
+.marks { position: absolute; top: -7px; right: -4px; display: flex; gap: 1px; }
+.mk { display: inline-flex; align-items: center; justify-content: center; font-size: 11px; line-height: 1; }
+.mk.good { font-size: 13px; }
+.mk.boost { width: 15px; height: 15px; border-radius: 50%; background: var(--mid); color: #fff; font-weight: 800; }
+.cert-btn { font: inherit; font-size: 14px; margin: 12px 0 4px 6px; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface2); color: var(--text); cursor: pointer; }
+.cert-actions { margin-bottom: 16px; } .cert-actions .btn { margin-top: 0; }
+/* 작명서 */
+.cert { background: #fffdf8; color: #2b2622; border: 1px solid #e3d8c6; border-radius: 12px; padding: 22px 20px; font-size: 13px; }
+.cert h5 { font-size: 13px; margin: 18px 0 6px; color: #a0523b; letter-spacing: .02em; }
+.cert-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 2px solid #c0654a; padding-bottom: 14px; flex-wrap: wrap; }
+.cert-brand { width: 100%; font-size: 12px; font-weight: 700; color: #c0654a; letter-spacing: .1em; }
+.cert-name { display: flex; gap: 10px; }
+.cert-char { display: flex; flex-direction: column; align-items: center; min-width: 54px; }
+.cert-char b { font-size: 38px; line-height: 1.1; font-family: "Noto Serif KR", "Batang", serif; }
+.cert-char span { font-size: 15px; font-weight: 700; } .cert-char small { font-size: 11px; color: #8a8078; }
+.cert-score { text-align: right; } .cert-score b { font-size: 34px; color: #3f8f5a; } .cert-score small { display: block; color: #8a8078; }
+.cert-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-top: 14px; }
+.cert-info > div { background: #f3eee6; border-radius: 8px; padding: 6px 8px; }
+.cert-info small { display: block; font-size: 11px; color: #8a8078; }
+.cert table.chars th, .cert table.chars td { border-color: #e7dfd4; color: #2b2622; }
+.cert-four { display: grid; grid-template-columns: 110px 1fr; gap: 8px; padding: 6px 0; border-bottom: 1px dashed #e7dfd4; }
+.cert-four small { display: block; color: #8a8078; }
+.cert-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; } .cert-grid .wide { grid-column: 1 / -1; }
+.cert-grid p { margin: 0; }
+.cert-scores { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 16px; padding-top: 10px; border-top: 1px solid #e7dfd4; font-size: 12px; color: #6b625b; }
+.cert-scores b { color: #2b2622; }
+.cert-foot { margin-top: 14px; font-size: 11px; color: #8a8078; }
+#printArea { display: none; }
+@media print {
+  @page { size: A4; margin: 14mm; }
+  body > *:not(#printArea) { display: none !important; }
+  #printArea { display: block !important; }
+  html, body { background: #fff !important; }
+  .cert { border: 0; padding: 0; font-size: 12px; }
+  .cert-four, .cert section { break-inside: avoid; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
 footer { color: var(--muted); font-size: 12px; margin-top: 28px; line-height: 1.7; }
 footer b { color: var(--text); }
 </style>
@@ -225,7 +265,7 @@ footer b { color: var(--text); }
   </div>
 
   <footer>
-    <p><b>점수 구성</b> — 수리 4격(원형이정, 81수리) 36점 · 수리오행 10점 · 발음오행 20점 · 자원오행(용신 보완) 20점 · 획수 음양 8점 · 글자 적합도 6점. 배점은 이 앱의 기준이며 업계 표준은 아닙니다.</p>
+    <p><b>점수 구성</b> — 수리 4격(원형이정, 81수리) 32점 · 수리오행 8점 · 발음오행 18점 · 발음 음양 8점 · 자원오행(용신 보완) 20점 · 획수 음양 8점 · 글자 적합도 6점. 배점은 이 앱의 기준이며 업계 표준은 아닙니다.</p>
     <p>획수는 성명학에서 쓰는 원획법(氵=水 4획, 扌=手 4획, 艹=艸 6획, 阝=阜·邑 등)으로 계산합니다. 자원오행은 이름에 자주 쓰는 약 450자는 작명 관용값을, 나머지는 부수를 기준으로 하며 부수로 판별되지 않는 글자(*)는 발음오행으로 추정했습니다.</p>
     <p>사주는 태양황경으로 계산한 절기를 기준으로 세우고, 음력 날짜는 삭(신월)과 중기를 천문 계산해 양력으로 바꿉니다. 한국의 서머타임(1948~1960, 1987~1988년)과 UTC+8:30 시기(1954~1961년)를 보정합니다. 용신은 억부법(월지 가중)과 조후를 바탕으로 한 간이 판단입니다.</p>
     <p>인명용 한자 목록은 Unicode Unihan(대법원 인명용 한자·교육용 한자) 데이터를, 한자 뜻은 libhangul 사전을 사용했습니다. 성명학은 학파마다 해석이 다른 전통 이론이며, 결과는 이름을 고르는 데 참고로만 활용해 주세요. 출생신고 전 대법원 전자가족관계등록시스템에서 인명용 한자 여부를 꼭 확인하세요.</p>
@@ -238,6 +278,8 @@ footer b { color: var(--text); }
     <div id="modalBody"></div>
   </div>
 </div>
+
+<div id="printArea" aria-hidden="true"></div>
 
 <script src="hanja-data.js"></script>
 <script src="names-data.js"></script>

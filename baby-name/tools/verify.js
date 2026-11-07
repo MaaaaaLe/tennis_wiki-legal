@@ -105,6 +105,36 @@ check('상생 木→火', E.relation('木', '火') === 'gen');
 check('상극 木→土', E.relation('木', '土') === 'ctrl');
 check('상비', E.relation('金', '金') === 'same');
 
+// 6-1. 발음 음양 (모음)
+section('발음 음양');
+const VY = { 한: '陽', 아: '陽', 야: '陽', 오: '陽', 요: '陽', 애: '陽', 와: '陽', 외: '陽', 지: '陰', 민: '陰', 서: '陰', 준: '陰', 유: '陰', 으: '陰', 의: '陰', 워: '陰', 에: '陰' };
+for (const [s, v] of Object.entries(VY)) check(`모음 음양 ${s}`, E.vowelYinYang(s) === v);
+const hjm = E.evaluate([{ syl: '한', hanja: E.findHanja('한', '韓') }], [{ syl: '지', hanja: E.findHanja('지', '知') }, { syl: '민', hanja: E.findHanja('민', '旻') }], {});
+check('한지민 발음 음양 = 陽陰陰, 조화', hjm.soundYY.join('') === '陽陰陰' && hjm.soundBalanced && hjm.soundYYScore === 8);
+const sjm = E.evaluate([{ syl: '서', hanja: E.findHanja('서', '徐') }], [{ syl: '지', hanja: E.findHanja('지', '知') }, { syl: '민', hanja: E.findHanja('민', '旻') }], {});
+check('서지민 발음 음양 치우침 → 0점', !sjm.soundBalanced && sjm.soundYYScore === 0);
+
+// 6-2. 한자 선택지 표시
+section('한자 선택지 표시');
+{
+  const sur = [{ syl: '김', hanja: E.findHanja('김', '金') }];
+  const sjm2 = E.saju({ y: 2026, m: 11, d: 7, hour: 9 }, { lmt: true });
+  let goodN = 0, mism = 0;
+  for (const a of E.hanjaList('서')) for (const b2 of E.candidatesFor('준', 10)) {
+    const given = [{ syl: '서', hanja: a }, { syl: '준', hanja: b2 }];
+    const m = E.hanjaMarks(sur, given, 0, a, sjm2);
+    const ev = E.evaluate(sur, given, { saju: sjm2 });
+    const suriAll = ev.four.every(f => f.level === 2);
+    if (m.suriOk !== suriAll || m.yyOk !== ev.balanced) mism++;
+    if (m.good) { goodN++; if (!(suriAll && ev.balanced && ev.jawon.every(e => e !== sjm2.yong.gi))) mism++; }
+    if (m.boost !== (a.element === sjm2.yong.yong || sjm2.yong.hui.includes(a.element))) mism++;
+  }
+  check('👍·! 표시가 평가 결과와 일치', mism === 0, `${mism}건 불일치`);
+  check('👍 표시 한자 존재', goodN > 0);
+  check('선별 한자에 불용한자 없음', !E.hanjaList('석').filter(E.isCurated).some(h => h.ch === '石'));
+  check('선별 한자에 이름 다빈도 한자 포함', E.hanjaList('서').filter(E.isCurated).some(h => h.ch === '瑞'));
+}
+
 // 7. 음력
 section('음력 변환');
 const LUNAR = [[2026, 1, 1, 0, '2026-2-17'], [2025, 6, 1, 1, '2025-7-25'], [2023, 2, 1, 1, '2023-3-22'], [2020, 4, 1, 1, '2020-5-23'],
@@ -174,8 +204,8 @@ for (const g of ['M', 'F', 'A']) for (const saju of [null, sj]) {
   for (const x of r) for (const c of [x.best].concat(x.alts)) {
     const ev = c.ev;
     minT = Math.min(minT, ev.total); maxT = Math.max(maxT, ev.total);
-    const sum = ev.suriScore + ev.suriElScore + ev.soundScore + ev.yyScore + ev.jawonScore + ev.charScore;
-    if (sum !== ev.total || ev.suriScore > 36 || ev.suriElScore > 10 || ev.soundScore > 20 || ev.yyScore > 8 || ev.jawonScore > 20 || ev.charScore > 6 || ev.charScore < 0) {
+    const sum = ev.suriScore + ev.suriElScore + ev.soundScore + ev.soundYYScore + ev.yyScore + ev.jawonScore + ev.charScore;
+    if (sum !== ev.total || ev.suriScore > 32 || ev.suriElScore > 8 || ev.soundScore > 18 || ev.soundYYScore > 8 || ev.yyScore > 8 || ev.jawonScore > 20 || ev.charScore > 6 || ev.charScore < 0) {
       check(`점수 합계 ${x.name}`, false, JSON.stringify(ev));
     }
   }

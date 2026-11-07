@@ -116,9 +116,10 @@
       <div class="score-circle g-${ev.grade}"><b>${ev.total}</b><small>${ev.grade}</small></div>
     </div>
     <button type="button" class="fav-btn ${isFav ? 'on' : ''}" data-fav='${esc(JSON.stringify({ key: favKey, ko: nameKo, hj: nameHj, s: surname.map(x => [x.syl, x.hanja.ch]), g: given.map(x => [x.syl, x.hanja.ch]) }))}'>${isFav ? '♥ 찜한 이름' : '♡ 찜하기'}</button>
+    <button type="button" class="cert-btn" data-cert='${esc(JSON.stringify({ s: surname.map(x => [x.syl, x.hanja.ch]), g: given.map(x => [x.syl, x.hanja.ch]) }))}'>📄 작명서 보기</button>
 
     <div class="scores">
-      ${bar('수리 4격', ev.suriScore, 36)}${bar('수리오행', ev.suriElScore, 10)}${bar('발음오행', ev.soundScore, 20)}${bar('자원오행', ev.jawonScore, 20)}${bar('획수 음양', ev.yyScore, 8)}${bar('글자 적합도', ev.charScore, 6)}
+      ${bar('수리 4격', ev.suriScore, 32)}${bar('수리오행', ev.suriElScore, 8)}${bar('발음오행', ev.soundScore, 18)}${bar('발음 음양', ev.soundYYScore, 8)}${bar('자원오행', ev.jawonScore, 20)}${bar('획수 음양', ev.yyScore, 8)}${bar('글자 적합도', ev.charScore, 6)}
     </div>
 
     <h4>글자 풀이</h4>
@@ -146,6 +147,11 @@
     }).join('')}</div>
     <p class="small muted">초성의 소리 오행이 이어지며 서로 살려주면(상생) 부르기 좋고 기운이 순하다고 봅니다.</p>
 
+    <h4>발음 음양</h4>
+    <p class="small">${ev.soundYY.map((v, i) => `<span class="yy ${v === '陽' ? 'yang' : 'yin'}">${esc(all[i].syl)} ${v}</span>`).join(' ')}
+      — ${ev.soundBalanced ? '소리의 음양이 섞여 조화롭습니다.' : '소리의 음양이 한쪽으로 치우쳐 있습니다.'}</p>
+    <p class="small muted">가운데 모음으로 나눕니다. ㅏ·ㅑ·ㅗ·ㅛ 계열은 양(陽), ㅓ·ㅕ·ㅜ·ㅠ·ㅡ·ㅣ 계열은 음(陰)입니다.</p>
+
     <h4>획수 음양</h4>
     <p class="small">${ev.yinyang.map((v, i) => `<span class="yy ${v === '陽' ? 'yang' : 'yin'}">${all[i].hanja.ch} ${v}</span>`).join(' ')}
       — ${ev.balanced ? '음과 양이 섞여 조화롭습니다.' : '모두 같은 음양으로 치우쳐 있습니다.'}</p>
@@ -155,6 +161,61 @@
     ${ev.avoid.length ? `<p class="warn small">⚠ ${ev.avoid.join(', ')}: 전통적으로 이름에 잘 쓰지 않는 불용한자로 분류되기도 합니다.</p>` : ''}
     ${opts.alts && opts.alts.length ? `<h4>같은 이름, 다른 한자 조합</h4><div class="alts">${opts.alts.map(a =>
       `<button type="button" class="alt" data-alt='${esc(JSON.stringify(a.given.map(g => [g.syl, g.hanja.ch])))}'><b>${a.given.map(g => g.hanja.ch).join('')}</b><small>${a.ev.total}점</small></button>`).join('')}</div>` : ''}`;
+  }
+
+  // ── 작명서 ──────────────────────────────────────────
+  const GENDER_KO = { M: '남아', F: '여아', A: '-' };
+  function certificateHTML(surname, given) {
+    const sj = sajuForCalc();
+    const ev = E.evaluate(surname, given, { saju: sj, school: state.school });
+    const all = surname.concat(given);
+    const today = new Date();
+    const L = sj && sj.lunarDate;
+    const lv = f => ['흉', '반길', '길'][f.level];
+    return `<article class="cert">
+      <header class="cert-head">
+        <div class="cert-brand">이름결 작명서</div>
+        <div class="cert-name">${all.map(x => `<div class="cert-char"><b>${x.hanja.ch}</b><span>${esc(x.syl)}</span><small>${esc((x.hanja.meaning || '').split(',')[0])} ${esc(x.syl)}</small></div>`).join('')}</div>
+        <div class="cert-score"><b>${ev.total}</b><small>/100 · ${ev.grade}</small></div>
+      </header>
+      <section class="cert-info">
+        <div><small>성별</small>${GENDER_KO[state.gender]}</div>
+        <div><small>생년월일</small>${sj ? `양력 ${sj.solar.y}.${sj.solar.m}.${sj.solar.d}${L ? `<br>음력 ${L.y}.${L.leap ? '윤' : ''}${L.m}.${L.d}` : ''}` : '-'}</div>
+        <div><small>태어난 시각</small>${sj && sj.hasTime ? esc(state.time) : '-'}</div>
+        <div><small>사주</small>${sj ? sj.pillars.map(p => p.stem + p.branch).join(' ') : '-'}</div>
+        <div><small>용신 · 희신</small>${sj ? sj.yong.yong + ' · ' + sj.yong.hui.join('') : '-'}</div>
+      </section>
+      <section>
+        <h5>글자 풀이</h5>
+        <table class="chars"><thead><tr><th>글자</th><th>뜻</th><th>원획</th><th>자원오행</th><th>발음오행</th><th>발음 음양</th><th>획수 음양</th></tr></thead><tbody>
+        ${all.map((x, i) => `<tr><td><b class="hj">${x.hanja.ch}</b> ${esc(x.syl)}</td><td>${esc(x.hanja.meaning || '-')}</td><td>${x.hanja.strokes}</td><td>${x.hanja.element}</td><td>${E.soundElement(x.syl, state.school)}</td><td>${ev.soundYY[i]}</td><td>${ev.yinyang[i]}</td></tr>`).join('')}
+        </tbody></table>
+      </section>
+      <section>
+        <h5>운세 흐름 (수리 4격)</h5>
+        ${ev.four.map(f => `<div class="cert-four"><div><b>${f.period.split(' ')[0]}</b><small>${f.key} · ${f.n}수 ${f.element}</small></div><div><b>${f.name}</b> <span class="lv ${['bad', 'mid', 'good'][f.level]}">${lv(f)}</span><br><small>${f.desc}</small></div></div>`).join('')}
+      </section>
+      <section class="cert-grid">
+        <div><h5>발음오행</h5><p>${ev.soundPairs.map(p => `${esc(p.a)}${p.ea}→${esc(p.b)}${p.eb} ${E.REL_KO[p.rel]}`).join(', ')}</p></div>
+        <div><h5>발음 음양</h5><p>${ev.soundYY.join(' ')} · ${ev.soundBalanced ? '조화' : '치우침'}</p></div>
+        <div><h5>수리오행</h5><p>${ev.four.map(f => f.element).join('→')} · ${ev.suriElPairs.map(p => E.REL_KO[p.rel]).join(', ')}</p></div>
+        <div><h5>획수 음양</h5><p>${ev.yinyang.join(' ')} · ${ev.balanced ? '조화' : '치우침'}</p></div>
+        <div class="wide"><h5>자원오행 · 사주 보완</h5><p>${given.map(g => g.hanja.ch + g.hanja.element).join(' ')} — ${esc(ev.jawonNote)}</p></div>
+      </section>
+      <section class="cert-scores">
+        ${[['수리 4격', ev.suriScore, 32], ['수리오행', ev.suriElScore, 8], ['발음오행', ev.soundScore, 18], ['발음 음양', ev.soundYYScore, 8], ['자원오행', ev.jawonScore, 20], ['획수 음양', ev.yyScore, 8], ['글자 적합도', ev.charScore, 6]]
+          .map(([l, v, m]) => `<span>${l} <b>${v}</b>/${m}</span>`).join('')}
+      </section>
+      <footer class="cert-foot">${today.getFullYear()}.${today.getMonth() + 1}.${today.getDate()} 작성 · 성명학은 학파마다 해석이 다른 전통 이론으로, 이 작명서는 참고용입니다. 출생신고 전 인명용 한자 여부를 확인하세요.</footer>
+    </article>`;
+  }
+  function openCertificate(data) {
+    const s = data.s.map(([syl, ch]) => ({ syl, hanja: E.findHanja(syl, ch) }));
+    const g = data.g.map(([syl, ch]) => ({ syl, hanja: E.findHanja(syl, ch) }));
+    const html = certificateHTML(s, g);
+    $('#printArea').innerHTML = html;
+    openModal(`<div class="cert-actions"><button type="button" class="btn" id="printBtn">인쇄 · PDF로 저장</button>
+      <p class="small muted">인쇄 화면에서 프린터 대신 'PDF로 저장'을 고르면 파일로 받을 수 있어요.</p></div>${html}`);
   }
 
   // ── 추천 탭 ─────────────────────────────────────────
@@ -198,22 +259,46 @@
     const syls = name.split('').filter(E.isHangulSyllable);
     if (!syls.length) { pick.innerHTML = ''; out.innerHTML = '<p class="muted small">이름(한 글자 또는 두 글자)을 한글로 입력하면 글자마다 한자를 고를 수 있어요.</p>'; return; }
     const q = ($('#anaFilter').value || '').trim();
-    pick.innerHTML = syls.map((s, i) => {
-      let list = E.hanjaList(s);
+    const sur = surnameParts();
+    const sj = sajuForCalc();
+    // 1) 글자별 후보와 현재 선택 확정
+    const lists = syls.map((s, i) => {
       const pref = window.NAME_HANJA[s] || '';
       const rank = c => { const k = pref.indexOf(c); return k < 0 ? 99 : k; };
-      list.sort((a, b) => (rank(a.ch) - rank(b.ch)) || (!!b.meaning - !!a.meaning));
-      if (!list.some(h => h.ch === state.anaHanja[i])) state.anaHanja[i] = list[0] ? list[0].ch : '';
-      const shown = q ? list.filter(h => h.meaning.includes(q) || h.ch === q || h.ch === state.anaHanja[i]) : list;
-      return `<div class="pickrow"><div class="pickhead">'${esc(s)}' 한자 <small class="muted">${list.length}자</small></div>
-        <div class="chips scroll">${shown.map(h => `<button type="button" class="chip ${h.ch === state.anaHanja[i] ? 'on' : ''}" data-i="${i}" data-v="${h.ch}">${h.ch}<small>${esc((h.meaning || '').split(',')[0] || '-')} · ${h.strokes}획 ${h.element}</small></button>`).join('') || '<span class="muted small">검색 결과 없음</span>'}</div></div>`;
-    }).join('');
+      const list = E.hanjaList(s).sort((a, b) => (rank(a.ch) - rank(b.ch)) || (!!b.meaning - !!a.meaning));
+      if (!list.some(h => h.ch === state.anaHanja[i])) state.anaHanja[i] = (list.find(E.isCurated) || list[0] || {}).ch || '';
+      return list;
+    });
     state.anaHanja.length = syls.length;
-    const sur = surnameParts();
-    if (!sur) { out.innerHTML = '<p class="warn">성과 성의 한자를 먼저 선택해주세요.</p>'; return; }
     const given = syls.map((s, i) => ({ syl: s, hanja: E.findHanja(s, state.anaHanja[i]) }));
-    if (given.some(g => !g.hanja)) { out.innerHTML = '<p class="warn">이 글자에 해당하는 인명용 한자가 없습니다.</p>'; return; }
-    const ev = E.evaluate(sur, given, { saju: sajuForCalc(), school: state.school });
+    const canMark = sur && given.every(g => g.hanja);
+    // 2) 선택지 표시 (👍: 사격·자원오행·획수 음양 모두 좋음, ❗: 용신·희신 기운)
+    pick.innerHTML = `
+      <div class="seg small-seg" role="radiogroup" aria-label="한자 선택지">
+        <label><input type="radio" name="hanjaSet" value="curated" ${state.allHanja ? '' : 'checked'}>선별 한자</label>
+        <label><input type="radio" name="hanjaSet" value="all" ${state.allHanja ? 'checked' : ''}>인명 한자 전체</label>
+      </div>
+      <p class="legend small muted"><span class="mk good">👍</span> 이 이름에서 사격(4격 모두 길)·자원오행·획수 음양이 모두 좋은 한자 ${sj ? '<span class="muted">(자원오행: 기신이 아닐 것)</span>' : '<span class="muted">(자원오행: 성→이름 상극 없음)</span>'}
+        ${sj ? `<br><span class="mk boost">!</span> 사주의 용신·희신(${sj.yong.yong}${sj.yong.hui.length ? '·' + sj.yong.hui.join('·') : ''}) 기운을 가진 한자` : '<br>생년월일을 넣으면 사주에 필요한 기운의 한자에 <span class="mk boost">!</span> 표시가 붙어요.'}</p>` +
+      syls.map((s, i) => {
+        const list = lists[i];
+        let shown = state.allHanja ? list : list.filter(h => E.isCurated(h) || h.ch === state.anaHanja[i]);
+        if (q) shown = shown.filter(h => h.meaning.includes(q) || h.ch === q || h.ch === state.anaHanja[i]);
+        const marks = {};
+        if (canMark) shown.forEach(h => { marks[h.ch] = E.hanjaMarks(sur, given, i, h, sj); });
+        shown = shown.slice().sort((a, b) => ((marks[b.ch] || {}).good - (marks[a.ch] || {}).good) || ((marks[b.ch] || {}).boost - (marks[a.ch] || {}).boost));
+        const goodCount = shown.filter(h => (marks[h.ch] || {}).good).length;
+        return `<div class="pickrow"><div class="pickhead">'${esc(s)}' 한자 <small class="muted">${shown.length}자${canMark ? ` · 👍 ${goodCount}자` : ''}</small></div>
+          <div class="chips scroll">${shown.map(h => {
+            const m = marks[h.ch] || {};
+            return `<button type="button" class="chip ${h.ch === state.anaHanja[i] ? 'on' : ''}" data-i="${i}" data-v="${h.ch}">
+              ${m.good || m.boost ? `<span class="marks">${m.good ? '<span class="mk good">👍</span>' : ''}${m.boost ? '<span class="mk boost">!</span>' : ''}</span>` : ''}${h.ch}<small>${esc((h.meaning || '').split(',')[0] || '-')} · ${h.strokes}획 ${h.element}</small></button>`;
+          }).join('') || '<span class="muted small">검색 결과 없음</span>'}</div>
+          ${canMark && !goodCount ? '<p class="small muted">이 성·이름 조합에서는 조건을 모두 만족하는 한자가 없어요. 다른 글자의 한자를 바꾸면 달라질 수 있어요.</p>' : ''}</div>`;
+      }).join('');
+    if (!sur) { out.innerHTML = '<p class="warn">성과 성의 한자를 먼저 선택해주세요.</p>'; return; }
+    if (!canMark) { out.innerHTML = '<p class="warn">이 글자에 해당하는 인명용 한자가 없습니다.</p>'; return; }
+    const ev = E.evaluate(sur, given, { saju: sj, school: state.school });
     out.innerHTML = analysisHTML(sur, given, ev);
     save();
   }
@@ -324,6 +409,7 @@
     });
     $('#anaName').addEventListener('input', e => { state.anaName = e.target.value.trim().slice(0, 2); state.anaHanja = []; renderAnalyze(); });
     $('#anaFilter').addEventListener('input', renderAnalyze);
+    $('#anaPick').addEventListener('change', e => { if (e.target.name === 'hanjaSet') { state.allHanja = e.target.value === 'all'; renderAnalyze(); } });
     $('#anaPick').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; state.anaHanja[+b.dataset.i] = b.dataset.v; renderAnalyze(); });
     $('#favList').addEventListener('click', e => {
       const d = e.target.closest('[data-del]');
@@ -334,6 +420,9 @@
     });
     $$('.tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
     document.addEventListener('click', e => {
+      const c = e.target.closest('.cert-btn');
+      if (c) { openCertificate(JSON.parse(c.dataset.cert)); return; }
+      if (e.target.id === 'printBtn') { window.print(); return; }
       const f = e.target.closest('.fav-btn');
       if (f) {
         const data = JSON.parse(f.dataset.fav); toggleFav(data);
