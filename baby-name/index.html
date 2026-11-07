@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>이름결 · 아기 이름 짓기</title>
+<meta name="description" content="성명학(수리 4격·발음오행·자원오행·사주)을 바탕으로 아기 이름을 추천하고 풀이합니다.">
+<style>
+:root {
+  --bg: #faf7f2; --surface: #ffffff; --surface2: #f3eee6; --text: #2b2622; --muted: #8a8078; --line: #e7dfd4;
+  --accent: #c0654a; --accent-soft: #f6e3dc; --good: #3f8f5a; --mid: #c89a2c; --bad: #c34b4b;
+  --wood: #3f8f5a; --fire: #d0503c; --earth: #b88a2e; --metal: #7d8590; --water: #3567a8;
+  --radius: 14px; --shadow: 0 1px 3px rgba(60,40,20,.08), 0 4px 16px rgba(60,40,20,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1816; --surface: #252120; --surface2: #2e2927; --text: #efe8e1; --muted: #a39890; --line: #3a3431;
+    --accent: #e08a6e; --accent-soft: #3d2a24; --good: #67b884; --mid: #e0b54d; --bad: #e07070;
+    --wood: #67b884; --fire: #ec7a66; --earth: #d8ac4f; --metal: #a9b0b8; --water: #6b98d6;
+    --shadow: 0 1px 3px rgba(0,0,0,.3);
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+body.noscroll { overflow: hidden; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 16px 64px; }
+header { padding: 28px 0 12px; }
+.logo { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+.logo span { color: var(--accent); }
+.sub { color: var(--muted); font-size: 14px; margin-top: 2px; }
+section.box { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; margin: 14px 0; }
+h3 { font-size: 15px; margin: 0 0 12px; }
+h4 { font-size: 14px; margin: 22px 0 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+label.f { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 6px; }
+input[type=text], input[type=date], input[type=time], select {
+  width: 100%; font: inherit; font-size: 16px; color: var(--text); background: var(--surface2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 10px 12px; outline: none; }
+input:focus, select:focus { border-color: var(--accent); }
+input:disabled { opacity: .5; }
+.row { display: flex; gap: 10px; }
+.row > * { flex: 1; min-width: 0; }
+.seg { display: flex; background: var(--surface2); border-radius: 10px; padding: 3px; }
+.seg label { flex: 1; text-align: center; padding: 8px 0; border-radius: 8px; font-size: 14px; cursor: pointer; }
+.seg input { display: none; }
+.seg label:has(input:checked) { background: var(--surface); box-shadow: var(--shadow); font-weight: 700; color: var(--accent); }
+.check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-top: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chips.scroll { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+.chip { flex: none; display: inline-flex; flex-direction: column; align-items: center; min-width: 52px; padding: 6px 10px; font: inherit;
+  font-size: 20px; line-height: 1.2; background: var(--surface2); color: var(--text); border: 1.5px solid transparent; border-radius: 10px; cursor: pointer; }
+.chip small { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.chip.on { border-color: var(--accent); background: var(--accent-soft); }
+.tabs { position: sticky; top: 0; z-index: 5; display: flex; gap: 4px; background: var(--bg); padding: 8px 0; }
+.tab { flex: 1; font: inherit; font-size: 15px; padding: 10px 0; border: 0; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; }
+.tab.on { background: var(--text); color: var(--bg); font-weight: 700; }
+.tab .badge { display: inline-block; min-width: 18px; font-size: 11px; background: var(--accent); color: #fff; border-radius: 9px; padding: 0 5px; margin-left: 4px; }
+.tab .badge:empty { display: none; }
+.btn { width: 100%; font: inherit; font-size: 16px; font-weight: 700; padding: 14px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; cursor: pointer; margin-top: 14px; }
+.btn:active { transform: scale(.99); }
+.muted { color: var(--muted); } .small { font-size: 13px; } .warn { color: var(--bad); }
+details summary { cursor: pointer; font-size: 14px; color: var(--muted); }
+/* 오행 태그 */
+.el { display: inline-flex; align-items: baseline; gap: 1px; font-weight: 700; font-size: 13px; padding: 0 6px; border-radius: 6px; color: #fff; margin: 0 1px; }
+.el small { font-size: 10px; font-weight: 500; opacity: .9; }
+.wood { background: var(--wood); } .fire { background: var(--fire); } .earth { background: var(--earth); } .metal { background: var(--metal); } .water { background: var(--water); }
+/* 사주 */
+.pillars { display: flex; gap: 6px; justify-content: center; }
+.pillar { text-align: center; flex: 1; max-width: 76px; }
+.plabel { font-size: 12px; color: var(--muted); }
+.pch { font-size: 22px; font-weight: 700; color: #fff; border-radius: 8px; margin: 3px 0; padding: 4px 0; background: var(--muted); }
+.pillar.ghost .pch { background: var(--surface2); color: var(--muted); }
+.pko { font-size: 12px; color: var(--muted); }
+.bars { margin: 12px 0 6px; }
+.bar, .sbar { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 4px 0; }
+.bar .bl { width: 46px; } .sbar > span:first-child { width: 72px; color: var(--muted); }
+.track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.fill { display: block; height: 100%; border-radius: 4px; } .fill.accent { background: var(--accent); }
+.bar b, .sbar b { width: 40px; text-align: right; font-size: 12px; }
+/* 카드 */
+#recResults, #favList { display: grid; gap: 8px; }
+.card { position: relative; display: grid; grid-template-columns: 1fr auto; grid-template-areas: "n s" "m s" "t s"; gap: 2px 12px; text-align: left;
+  width: 100%; font: inherit; color: inherit; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; cursor: pointer; }
+.card:hover { border-color: var(--accent); }
+.cn { grid-area: n; display: flex; align-items: baseline; gap: 8px; } .cn b { font-size: 19px; } .cn .hj { color: var(--muted); font-size: 15px; letter-spacing: .05em; }
+.cm { grid-area: m; font-size: 15px; } .cm small { font-size: 12px; color: var(--muted); margin: 0 6px 0 2px; }
+.ct { grid-area: t; display: flex; align-items: center; gap: 3px; margin-top: 4px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; } .dot.good { background: var(--good); } .dot.mid { background: var(--mid); } .dot.bad { background: var(--bad); }
+.ct .dot:nth-child(4) { margin-right: 8px; }
+.cs { grid-area: s; align-self: center; font-size: 22px; font-weight: 800; }
+.card.fav { padding-right: 44px; }
+.del { position: absolute; right: 8px; top: 8px; border: 0; background: transparent; color: var(--muted); font-size: 16px; cursor: pointer; padding: 6px; }
+.g-최상 { color: var(--good); } .g-상 { color: var(--good); } .g-중상 { color: var(--mid); } .g-중 { color: var(--mid); } .g-하 { color: var(--bad); }
+/* 결과 */
+.result-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.big-name { font-size: 30px; font-weight: 800; letter-spacing: .04em; }
+.big-hanja { font-size: 22px; color: var(--muted); letter-spacing: .12em; }
+.meaning { font-size: 15px; margin-top: 4px; } .meaning small { color: var(--muted); }
+.score-circle { flex: none; width: 82px; height: 82px; border-radius: 50%; border: 4px solid currentColor; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.score-circle b { font-size: 28px; line-height: 1; } .score-circle small { font-size: 12px; font-weight: 700; }
+.fav-btn { font: inherit; font-size: 14px; margin: 12px 0 4px; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; }
+.fav-btn.on { background: var(--accent); color: #fff; }
+.scores { margin-top: 10px; }
+table.chars { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.chars th { white-space: nowrap; font-size: 12px; font-weight: 500; color: var(--muted); text-align: left; padding: 4px; border-bottom: 1px solid var(--line); }
+table.chars td { padding: 6px 4px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.chars tr.sur td { color: var(--muted); }
+.hj { font-size: 18px; }
+.four { display: grid; gap: 8px; }
+.frow { display: grid; grid-template-columns: 88px 48px 1fr; gap: 8px; align-items: center; background: var(--surface2); border-radius: 10px; padding: 10px; }
+.fkey small { display: block; font-size: 11px; color: var(--muted); }
+.fnum { font-size: 22px; font-weight: 800; text-align: center; } .fnum small { font-size: 11px; font-weight: 500; }
+.fdesc { font-size: 14px; }
+.lv { font-size: 12px; font-weight: 700; padding: 1px 7px; border-radius: 6px; color: #fff; }
+.lv.good { background: var(--good); } .lv.mid { background: var(--mid); } .lv.bad { background: var(--bad); }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.fnode { background: var(--surface2); border-radius: 8px; padding: 4px 8px; font-weight: 700; }
+.rel { font-size: 12px; font-weight: 700; } .rel.gen { color: var(--good); } .rel.same { color: var(--mid); } .rel.ctrl { color: var(--bad); }
+.rel::before { content: '→ '; color: var(--muted); }
+.yy { display: inline-block; padding: 1px 6px; border-radius: 6px; background: var(--surface2); margin: 2px 0; }
+.yy.yang { color: var(--fire); } .yy.yin { color: var(--water); }
+.alts { display: flex; flex-wrap: wrap; gap: 6px; }
+.alt { font: inherit; display: flex; flex-direction: column; align-items: center; padding: 6px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface2); color: var(--text); cursor: pointer; }
+.alt b { font-size: 18px; } .alt small { font-size: 11px; color: var(--muted); }
+.pickrow { margin-bottom: 10px; } .pickhead { font-size: 14px; font-weight: 700; }
+/* 모달 */
+#modal { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
+#modal[hidden] { display: none; }
+.sheet { position: relative; width: 100%; max-width: 720px; max-height: 92vh; background: var(--surface); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; }
+@media (min-width: 760px) { #modal { align-items: center; } .sheet { border-radius: 20px; max-height: 88vh; } }
+#modalBody { overflow-y: auto; padding: 22px 18px 32px; }
+#modalClose { position: absolute; right: 10px; top: 10px; z-index: 1; width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--surface2); color: var(--text); font-size: 18px; cursor: pointer; }
+footer { color: var(--muted); font-size: 12px; margin-top: 28px; line-height: 1.7; }
+footer b { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">이름<span>결</span></div>
+    <div class="sub">성명학으로 짓고 풀어보는 우리 아기 이름</div>
+  </header>
+
+  <section class="box" aria-label="기본 정보">
+    <h3>아기 정보</h3>
+    <div class="row">
+      <div style="flex:0 0 96px">
+        <label class="f" for="surname">성</label>
+        <input id="surname" type="text" maxlength="2" placeholder="김" autocomplete="off">
+      </div>
+      <div>
+        <label class="f">성별</label>
+        <div class="seg" role="radiogroup">
+          <label><input type="radio" name="gender" value="M">남아</label>
+          <label><input type="radio" name="gender" value="F">여아</label>
+          <label><input type="radio" name="gender" value="A">상관없음</label>
+        </div>
+      </div>
+    </div>
+    <label class="f">성의 한자</label>
+    <div id="surnameHanja" class="chips"></div>
+
+    <div class="row">
+      <div><label class="f" for="birth">생년월일 (양력)</label><input id="birth" type="date"></div>
+      <div><label class="f" for="time">태어난 시각</label><input id="time" type="time"></div>
+    </div>
+    <label class="check"><input id="noTime" type="checkbox"> 시각 모름 (예정일 등)</label>
+    <details style="margin-top:10px">
+      <summary>계산 설정</summary>
+      <label class="check"><input id="lmt" type="checkbox"> 진태양시 보정 (서울 기준 −32분)</label>
+      <label class="f" for="school">발음오행 학설</label>
+      <select id="school">
+        <option value="standard">현대 통용 — ㅇㅎ 토(土), ㅁㅂㅍ 수(水)</option>
+        <option value="haerye">훈민정음 해례본 — ㅇㅎ 수(水), ㅁㅂㅍ 토(土)</option>
+      </select>
+    </details>
+    <h4 style="margin-top:16px">사주 오행</h4>
+    <div id="sajuBox"></div>
+  </section>
+
+  <nav class="tabs">
+    <button type="button" class="tab" data-tab="rec">이름 추천</button>
+    <button type="button" class="tab" data-tab="ana">이름 풀이</button>
+    <button type="button" class="tab" data-tab="fav">찜<span id="favCount" class="badge"></span></button>
+  </nav>
+
+  <div id="panel-rec" class="panel">
+    <section class="box">
+      <h3>추천 조건 <small class="muted">(선택)</small></h3>
+      <div class="row">
+        <div><label class="f" for="fixedSyl">돌림자</label><input id="fixedSyl" type="text" maxlength="1" placeholder="예: 준" autocomplete="off"></div>
+        <div><label class="f" for="fixedPos">돌림자 위치</label>
+          <select id="fixedPos"><option value="0">첫 글자 (준○)</option><option value="1">끝 글자 (○준)</option></select></div>
+        <div><label class="f" for="include">꼭 넣을 음절</label><input id="include" type="text" maxlength="1" placeholder="예: 윤" autocomplete="off"></div>
+      </div>
+      <div id="fixedHanja" class="chips scroll"></div>
+      <button type="button" id="recBtn" class="btn">이름 추천받기</button>
+    </section>
+    <div id="recResults"></div>
+  </div>
+
+  <div id="panel-ana" class="panel" hidden>
+    <section class="box">
+      <h3>생각해 둔 이름 풀이</h3>
+      <div class="row">
+        <div><label class="f" for="anaName">이름 (성 제외)</label><input id="anaName" type="text" maxlength="2" placeholder="예: 서윤" autocomplete="off"></div>
+        <div><label class="f" for="anaFilter">한자 뜻 검색</label><input id="anaFilter" type="text" placeholder="예: 상서, 빛" autocomplete="off"></div>
+      </div>
+      <div id="anaPick" style="margin-top:12px"></div>
+    </section>
+    <section class="box" id="anaResult"></section>
+  </div>
+
+  <div id="panel-fav" class="panel" hidden>
+    <div id="favList"></div>
+  </div>
+
+  <footer>
+    <p><b>점수 구성</b> — 수리 4격(원형이정, 81수리) 40점 · 발음오행 20점 · 자원오행/사주 보완 20점 · 획수 음양 10점 · 글자 적합도 10점</p>
+    <p>획수는 성명학에서 쓰는 원획법(氵=水 4획, 扌=手 4획, 艹=艸 6획, 阝=阜·邑 등)으로 계산합니다. 자원오행은 부수 기준이며 부수로 판별되지 않는 글자(*)는 발음오행으로 추정했습니다. 사주는 양력 기준 절기(태양황경)로 계산합니다.</p>
+    <p>인명용 한자 목록은 Unicode Unihan(대법원 인명용 한자·교육용 한자) 데이터를, 한자 뜻은 libhangul 사전을 사용했습니다. 성명학은 학파마다 해석이 다른 전통 이론이며, 결과는 이름을 고르는 데 참고로만 활용해 주세요. 출생신고 전 대법원 전자가족관계등록시스템에서 인명용 한자 여부를 꼭 확인하세요.</p>
+  </footer>
+</div>
+
+<div id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true">
+    <button type="button" id="modalClose" aria-label="닫기">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script src="hanja-data.js"></script>
+<script src="names-data.js"></script>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
